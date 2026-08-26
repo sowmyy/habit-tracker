@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from './context/AuthContext'
-import { loadAll } from './lib/store'
+import { loadAll, addHabit } from './lib/store'
 import LoginScreen from './screens/LoginScreen'
 import Onboarding from './screens/Onboarding'
 import AppShell from './components/AppShell'
@@ -56,6 +56,14 @@ export default function App() {
     }))
   }, [])
 
+  const handleAddHabit = useCallback(async (habit) => {
+    await addHabit(habit)
+    setData((d) => ({
+      ...d,
+      tracker: { ...d.tracker, habits: [...d.tracker.habits, habit] },
+    }))
+  }, [])
+
   if (loading) return <Spinner text="Loading…" />
   if (!user) return <LoginScreen />
   if (dataLoading) return <Spinner text="Opening your habit sheet…" />
@@ -77,15 +85,8 @@ export default function App() {
       tracker={data.tracker}
       entriesByDay={data.entriesByDay}
       onUpdateDay={updateDay}
-      onNewGoal={() => {
-        if (
-          window.confirm(
-            'Start a new goal? This replaces your current habits and progress with a fresh journey.'
-          )
-        ) {
-          setReonboard(true)
-        }
-      }}
+      onAddHabit={handleAddHabit}
+      onNewGoal={() => setReonboard(true)}
     />
   )
 }

@@ -58,8 +58,33 @@ export default function Onboarding({ onDone }) {
   return (
     <div className="min-h-full flex items-start sm:items-center justify-center bg-background p-margin-mobile sm:py-10">
       <div className="w-full max-w-xl bg-surface-container-lowest rounded-[2rem] card-shadow p-xl sm:p-10">
-        {/* Step 1 — Goal */}
+        {/* Step 1 — Welcome */}
         {step === 1 && (
+          <>
+            <ProgressBar filled={1} />
+            <div className="text-center">
+              <div className="mx-auto mb-lg w-20 h-20 rounded-[1.25rem] bg-primary-container flex items-center justify-center shadow-lg shadow-primary-container/40">
+                <Icon name="eco" filled className="text-primary text-4xl" />
+              </div>
+              <h1 className="font-headline-lg text-headline-lg text-on-surface mb-md">
+                Let's set up your journey
+              </h1>
+              <p className="font-body-md text-body-md text-on-surface-variant mb-xl max-w-md mx-auto">
+                A few quick steps to personalize your habit tracker. First pick a timeframe, then
+                choose the habits you want to build.
+              </p>
+              <button
+                onClick={() => setStep(2)}
+                className="w-full bg-primary text-on-primary font-label-md text-label-md rounded-xl py-4 flex items-center justify-center gap-sm hover:opacity-90 transition-opacity"
+              >
+                Get Started <Icon name="arrow_forward" className="text-xl" />
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* Step 2 — Goal */}
+        {step === 2 && (
           <>
             <ProgressBar filled={2} />
             <h1 className="font-headline-lg text-headline-lg text-on-surface text-center mb-md">
@@ -98,18 +123,26 @@ export default function Onboarding({ onDone }) {
               ))}
             </div>
 
-            <button
-              onClick={() => setStep(2)}
-              disabled={!(Number(durationDays) >= 1 && Number(durationDays) <= 1000)}
-              className="w-full bg-primary text-on-primary font-label-md text-label-md rounded-xl py-4 flex items-center justify-center gap-sm hover:opacity-90 transition-opacity disabled:opacity-50"
-            >
-              Continue <Icon name="arrow_forward" className="text-xl" />
-            </button>
+            <div className="flex items-center gap-md">
+              <button
+                onClick={() => setStep(1)}
+                className="px-5 py-4 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors"
+              >
+                Back
+              </button>
+              <button
+                onClick={() => setStep(3)}
+                disabled={!(Number(durationDays) >= 1 && Number(durationDays) <= 1000)}
+                className="flex-1 bg-primary text-on-primary font-label-md text-label-md rounded-xl py-4 flex items-center justify-center gap-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                Continue <Icon name="arrow_forward" className="text-xl" />
+              </button>
+            </div>
           </>
         )}
 
-        {/* Step 2 — Habits */}
-        {step === 2 && (
+        {/* Step 3 — Habits */}
+        {step === 3 && (
           <>
             <ProgressBar filled={3} />
             <h1 className="font-headline-lg text-headline-lg text-on-surface mb-md">
@@ -226,7 +259,7 @@ export default function Onboarding({ onDone }) {
 
             <div className="flex items-center gap-md">
               <button
-                onClick={() => setStep(1)}
+                onClick={() => setStep(2)}
                 disabled={saving}
                 className="px-5 py-4 rounded-xl font-label-md text-label-md text-on-surface-variant hover:bg-surface-container-high transition-colors"
               >

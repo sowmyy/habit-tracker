@@ -4,22 +4,38 @@ import Icon from './Icon'
 import DailyPortal from '../screens/DailyPortal'
 import Dashboard from '../screens/Dashboard'
 import Settings from '../screens/Settings'
+import AddHabit from '../screens/AddHabit'
 
 const NAV = [
   { key: 'today', label: 'Daily Tracker', icon: 'task_alt' },
+  { key: 'add', label: 'Add Habit', icon: 'add_box' },
   { key: 'insights', label: 'Insights', icon: 'bar_chart' },
   { key: 'settings', label: 'Settings', icon: 'settings' },
 ]
 
 const MOBILE_NAV = [
   { key: 'today', label: 'Tracker', icon: 'check_circle' },
+  { key: 'add', label: 'Add', icon: 'add_circle' },
   { key: 'insights', label: 'Insights', icon: 'analytics' },
   { key: 'settings', label: 'Settings', icon: 'settings' },
 ]
 
-export default function AppShell({ tracker, entriesByDay, onUpdateDay, onNewGoal }) {
+const COLLAPSE_KEY = 'habitracker-nav-collapsed'
+
+export default function AppShell({ tracker, entriesByDay, onUpdateDay, onAddHabit, onNewGoal }) {
   const { user, logout } = useAuth()
   const [view, setView] = useState('today')
+  const [collapsed, setCollapsed] = useState(
+    () => localStorage.getItem(COLLAPSE_KEY) === '1'
+  )
+
+  const toggleCollapsed = () => {
+    setCollapsed((c) => {
+      const next = !c
+      localStorage.setItem(COLLAPSE_KEY, next ? '1' : '0')
+      return next
+    })
+  }
 
   const avatar = user?.photoURL
   const initial = (user?.displayName || 'U').charAt(0).toUpperCase()
@@ -33,54 +49,78 @@ export default function AppShell({ tracker, entriesByDay, onUpdateDay, onNewGoal
       </header>
 
       {/* Desktop sidebar */}
-      <nav className="hidden md:flex flex-col w-64 fixed left-0 top-0 h-full bg-surface-container-low dark:bg-dark-surface p-lg z-40">
-        <div className="font-headline-md text-headline-md font-bold text-primary mb-lg">HabiTracker</div>
-        <div className="flex items-center gap-md mb-xl">
-          <Avatar avatar={avatar} initial={initial} size={48} />
-          <div className="min-w-0">
-            <div className="font-body-md text-body-md text-on-surface dark:text-dark-on-surface truncate">
-              {user?.displayName || 'Welcome back'}
-            </div>
-            <div className="font-label-sm text-label-sm text-on-surface-variant">Stay consistent!</div>
-          </div>
+      <nav
+        className={`hidden md:flex flex-col fixed left-0 top-0 h-full bg-surface-container-low dark:bg-dark-surface p-lg z-40 transition-[width] duration-200 ${
+          collapsed ? 'w-20 items-center' : 'w-64'
+        }`}
+      >
+        {/* Brand + collapse toggle */}
+        <div className={`flex items-center mb-lg ${collapsed ? 'justify-center' : 'justify-between'}`}>
+          {!collapsed && (
+            <span className="font-headline-md text-headline-md font-bold text-primary">HabiTracker</span>
+          )}
+          <button
+            onClick={toggleCollapsed}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+            title={collapsed ? 'Expand' : 'Collapse'}
+            className="w-10 h-10 rounded-lg flex items-center justify-center text-on-surface dark:text-dark-on-surface hover:bg-surface-container-high dark:hover:bg-dark-surface-high transition-colors"
+          >
+            <Icon name={collapsed ? 'menu' : 'menu_open'} className="text-2xl" />
+          </button>
         </div>
 
-        <div className="flex-grow flex flex-col gap-sm">
+        {/* Profile */}
+        <div className={`flex items-center gap-md mb-xl ${collapsed ? 'justify-center' : ''}`}>
+          <Avatar avatar={avatar} initial={initial} size={collapsed ? 40 : 48} />
+          {!collapsed && (
+            <div className="min-w-0">
+              <div className="font-body-md text-body-md text-on-surface dark:text-dark-on-surface truncate">
+                {user?.displayName || 'Welcome back'}
+              </div>
+              <div className="font-label-sm text-label-sm text-on-surface-variant">Stay consistent!</div>
+            </div>
+          )}
+        </div>
+
+        {/* Nav */}
+        <div className="flex-grow flex flex-col gap-sm w-full">
           {NAV.map((item) => {
             const active = view === item.key
             return (
               <button
                 key={item.key}
                 onClick={() => setView(item.key)}
-                className={`flex items-center gap-md p-md rounded-lg transition-colors text-left ${
+                title={collapsed ? item.label : undefined}
+                className={`flex items-center gap-md rounded-xl transition-colors text-left ${
+                  collapsed ? 'justify-center p-3' : 'p-md'
+                } ${
                   active
-                    ? 'bg-primary-container/25 text-primary font-bold'
-                    : 'text-on-surface-variant hover:bg-surface-container-high dark:hover:bg-dark-surface-high'
+                    ? 'bg-primary text-on-primary font-bold shadow-sm'
+                    : 'text-on-surface dark:text-dark-on-surface font-medium hover:bg-surface-container-high dark:hover:bg-dark-surface-high'
                 }`}
               >
-                <Icon name={item.icon} filled={active} />
-                <span className="font-label-md text-label-md">{item.label}</span>
+                <Icon name={item.icon} filled className="text-2xl" />
+                {!collapsed && <span className="font-label-md text-label-md">{item.label}</span>}
               </button>
             )
           })}
         </div>
-
-        <button
-          onClick={onNewGoal}
-          className="mt-auto w-full bg-primary-container text-on-primary-container font-label-md text-label-md py-3 rounded-xl hover:opacity-90 transition-opacity flex items-center justify-center gap-sm"
-        >
-          <Icon name="add" />
-          New Goal
-        </button>
       </nav>
 
       {/* Main content */}
-      <main className="flex-grow md:ml-64 pt-20 md:pt-lg px-margin-mobile md:px-margin-desktop pb-28 md:pb-lg max-w-7xl mx-auto w-full">
+      <main
+        className={`flex-grow pt-20 md:pt-lg px-margin-mobile md:px-margin-desktop pb-28 md:pb-lg max-w-7xl mx-auto w-full transition-[margin] duration-200 ${
+          collapsed ? 'md:ml-20' : 'md:ml-64'
+        }`}
+      >
         {view === 'today' && (
           <DailyPortal tracker={tracker} entriesByDay={entriesByDay} onUpdateDay={onUpdateDay} />
         )}
+        {view === 'add' && (
+          <AddHabit tracker={tracker} onAddHabit={onAddHabit} onGoToTracker={() => setView('today')} />
+        )}
         {view === 'insights' && <Dashboard tracker={tracker} entriesByDay={entriesByDay} />}
-        {view === 'settings' && <Settings onNewGoal={onNewGoal} onLogout={logout} />}
+        {view === 'settings' && <Settings onResetGoal={onNewGoal} onLogout={logout} />}
       </main>
 
       {/* Mobile bottom nav */}
@@ -92,10 +132,12 @@ export default function AppShell({ tracker, entriesByDay, onUpdateDay, onNewGoal
               key={item.key}
               onClick={() => setView(item.key)}
               className={`flex flex-col items-center justify-center px-4 py-1 rounded-2xl transition-colors ${
-                active ? 'bg-primary-container text-on-primary-container' : 'text-on-surface-variant'
+                active
+                  ? 'bg-primary text-on-primary'
+                  : 'text-on-surface dark:text-dark-on-surface'
               }`}
             >
-              <Icon name={item.icon} filled={active} />
+              <Icon name={item.icon} filled className="text-2xl" />
               <span className="font-label-sm text-label-sm">{item.label}</span>
             </button>
           )

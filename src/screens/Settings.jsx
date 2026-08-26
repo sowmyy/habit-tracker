@@ -3,9 +3,10 @@ import { useAuth } from '../context/AuthContext'
 import { isDark, setDark } from '../lib/theme'
 import Icon from '../components/Icon'
 
-export default function Settings({ onNewGoal, onLogout }) {
+export default function Settings({ onResetGoal, onLogout }) {
   const { user } = useAuth()
   const [dark, setDarkState] = useState(isDark())
+  const [showReset, setShowReset] = useState(false)
 
   function toggleDark() {
     const next = !dark
@@ -100,13 +101,13 @@ export default function Settings({ onNewGoal, onLogout }) {
           </h2>
 
           <button
-            onClick={onNewGoal}
-            className="w-full flex items-center justify-between rounded-xl bg-primary-container/20 p-md mb-md hover:bg-primary-container/30 transition-colors"
+            onClick={() => setShowReset(true)}
+            className="w-full flex items-center justify-between rounded-xl bg-error-container/40 p-md mb-md hover:bg-error-container/60 transition-colors"
           >
             <span className="flex items-center gap-md">
-              <Icon name="flag" filled className="text-primary text-2xl" />
+              <Icon name="restart_alt" filled className="text-error text-2xl" />
               <span className="font-body-md text-body-md text-on-surface dark:text-dark-on-surface">
-                Start a New Goal
+                Reset your Goal
               </span>
             </span>
             <Icon name="chevron_right" className="text-on-surface-variant" />
@@ -120,6 +121,65 @@ export default function Settings({ onNewGoal, onLogout }) {
             <span className="font-body-md text-body-md text-on-surface dark:text-dark-on-surface">
               Sign Out
             </span>
+          </button>
+        </div>
+      </div>
+
+      {showReset && (
+        <ResetModal onCancel={() => setShowReset(false)} onConfirm={onResetGoal} />
+      )}
+    </div>
+  )
+}
+
+function ResetModal({ onCancel, onConfirm }) {
+  return (
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center p-margin-mobile bg-black/40 backdrop-blur-sm"
+      onClick={onCancel}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-md bg-surface-container-lowest dark:bg-dark-surface-container rounded-[2rem] card-shadow p-xl"
+      >
+        <div className="w-14 h-14 rounded-2xl bg-error-container flex items-center justify-center mb-lg">
+          <Icon name="restart_alt" filled className="text-error text-3xl" />
+        </div>
+        <h2 className="font-headline-md text-headline-md text-on-surface dark:text-dark-on-surface mb-sm">
+          Reset your goal?
+        </h2>
+        <p className="font-body-md text-body-md text-on-surface-variant mb-lg">
+          This starts a brand-new journey. It will permanently:
+        </p>
+        <ul className="space-y-sm mb-lg">
+          {[
+            'Erase your current habit list',
+            'Delete all your daily check-ins and streaks',
+            'Reset the day count and start date',
+          ].map((t) => (
+            <li key={t} className="flex items-start gap-sm font-body-md text-body-md text-on-surface dark:text-dark-on-surface">
+              <Icon name="cancel" filled className="text-error text-xl mt-0.5 flex-none" />
+              {t}
+            </li>
+          ))}
+        </ul>
+        <p className="font-label-md text-label-md text-on-surface-variant mb-xl">
+          This can't be undone. Your habit sheet in Google Drive will be overwritten.
+        </p>
+        <div className="flex gap-md">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-3 rounded-xl font-label-md text-label-md border border-surface-container-high text-on-surface dark:text-dark-on-surface hover:bg-surface-container-high dark:hover:bg-dark-surface-high transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-3 rounded-xl font-label-md text-label-md bg-error text-on-error hover:opacity-90 transition-opacity"
+          >
+            Reset Goal
           </button>
         </div>
       </div>

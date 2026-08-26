@@ -79,6 +79,11 @@ function valuesAppend(id, range, values) {
   return apiFetch(url, { method: 'POST', body: { values } })
 }
 
+function valuesClear(id, range) {
+  const url = `${SHEETS_BASE}/${id}/values/${encodeURIComponent(range)}:clear`
+  return apiFetch(url, { method: 'POST', body: {} })
+}
+
 async function batchGet(id, ranges) {
   const qs = ranges.map((r) => `ranges=${encodeURIComponent(r)}`).join('&')
   const r = await apiFetch(`${SHEETS_BASE}/${id}/values:batchGet?${qs}`)
@@ -151,6 +156,10 @@ export async function confirmTracker({ durationDays, habits }) {
   const startDate = todayKey()
   const habitIds = habits.map((h) => h.id)
 
+  // Clear any previous habits/log so a reset starts from a clean slate.
+  await valuesClear(id, 'Habits!A1:Z')
+  await valuesClear(id, 'Log!A1:ZZ')
+
   await valuesUpdate(id, 'Config!A1:B4', [
     ['key', 'value'],
     ['durationDays', String(durationDays)],
@@ -166,6 +175,23 @@ export async function confirmTracker({ durationDays, habits }) {
   ctx = { spreadsheetId: id, logHeader: habitIds, dateRows: {} }
 
   return { durationDays, startDate, habits, confirmed: true }
+}
+
+// ---- Add a habit to an existing tracker ----------------------------------
+// Appends a row to the Habits tab and a new column to the Log header. Existing
+// daily entries stay valid (the new column is simply blank until checked).
+export async function addHabit(habit) {
+  const id = ctx.spreadsheetId
+  if (!id) throw new Error('No spreadsheet loaded')
+
+  // New Log column: date is column A, habits start at B.
+  const col = colLetter(ctx.logHeader.length + 2)
+
+  await valuesAppend(id, 'Habits!A1', [[habit.id, habit.name]])
+  await valuesUpdate(id, `Log!${col}1`, [[habit.id]])
+
+  ctx.logHeader.push(habit.id)
+  return habit
 }
 
 // ---- Toggle one habit for one day ----------------------------------------
