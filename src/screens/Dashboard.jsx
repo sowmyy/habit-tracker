@@ -9,6 +9,7 @@ import { addDays, dayDiff, todayKey, prettyDate, fromDayKey } from '../lib/dates
 import { habitMeta, TONE_TILE } from '../lib/habitMeta'
 import Icon from '../components/Icon'
 import ProgressRing from '../components/ProgressRing'
+import HabitCalendar from '../components/HabitCalendar'
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
@@ -175,6 +176,11 @@ export default function Dashboard({ tracker, entriesByDay }) {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Journey heatmap — one square per day of the goal */}
+        <div className="lg:col-span-3 rounded-2xl p-lg card-shadow bg-surface-container-lowest dark:bg-dark-surface-container">
+          <HabitCalendar tracker={tracker} entriesByDay={entriesByDay} />
         </div>
       </div>
     </div>
