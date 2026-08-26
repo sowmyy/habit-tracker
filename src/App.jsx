@@ -5,13 +5,25 @@ import LoginScreen from './screens/LoginScreen'
 import Onboarding from './screens/Onboarding'
 import AppShell from './components/AppShell'
 
+function Spinner({ text, danger }) {
+  return (
+    <div
+      className={`min-h-full flex items-center justify-center font-body-md text-body-md ${
+        danger ? 'text-error' : 'text-on-surface-variant'
+      }`}
+    >
+      {text}
+    </div>
+  )
+}
+
 export default function App() {
   const { user, loading } = useAuth()
   const [data, setData] = useState(null) // { tracker, entriesByDay }
   const [dataLoading, setDataLoading] = useState(false)
   const [error, setError] = useState('')
+  const [reonboard, setReonboard] = useState(false)
 
-  // Load the user's Google Sheet (or discover there isn't one yet).
   useEffect(() => {
     let cancelled = false
     async function run() {
@@ -37,7 +49,6 @@ export default function App() {
     }
   }, [user])
 
-  // Merge an updated day's completed map into shared state (optimistic UI).
   const updateDay = useCallback((dayKey, completed) => {
     setData((d) => ({
       ...d,
@@ -45,16 +56,18 @@ export default function App() {
     }))
   }, [])
 
-  if (loading) return <div className="spinner">Loading…</div>
+  if (loading) return <Spinner text="Loading…" />
   if (!user) return <LoginScreen />
-  if (dataLoading) return <div className="spinner">Opening your habit sheet…</div>
-  if (error) return <div className="spinner" style={{ color: 'var(--danger)' }}>{error}</div>
+  if (dataLoading) return <Spinner text="Opening your habit sheet…" />
+  if (error) return <Spinner text={error} danger />
 
-  // No confirmed tracker yet → onboarding.
-  if (!data?.tracker) {
+  if (!data?.tracker || reonboard) {
     return (
       <Onboarding
-        onDone={(tracker) => setData({ tracker, entriesByDay: {} })}
+        onDone={(tracker) => {
+          setData({ tracker, entriesByDay: {} })
+          setReonboard(false)
+        }}
       />
     )
   }
@@ -64,6 +77,15 @@ export default function App() {
       tracker={data.tracker}
       entriesByDay={data.entriesByDay}
       onUpdateDay={updateDay}
+      onNewGoal={() => {
+        if (
+          window.confirm(
+            'Start a new goal? This replaces your current habits and progress with a fresh journey.'
+          )
+        ) {
+          setReonboard(true)
+        }
+      }}
     />
   )
 }
