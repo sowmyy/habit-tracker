@@ -46,7 +46,8 @@ const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
 
 // Request an access token. prompt '' = silent (no UI if already consented);
 // 'consent' / 'select_account' show UI.
-function requestToken(prompt) {
+async function requestToken(prompt) {
+  if (!tokenClient) await initAuth() // recover if init hasn't run/failed yet
   return new Promise((resolve, reject) => {
     if (!tokenClient) return reject(new Error('Auth not initialized'))
     tokenClient.callback = (resp) => {
