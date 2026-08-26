@@ -28,39 +28,66 @@ export default function LoginScreen() {
   }
 
   return (
-    <div className="min-h-full flex items-center justify-center bg-background p-margin-mobile">
-      <div className="w-full max-w-md bg-surface-container-lowest rounded-[2rem] card-shadow p-xl sm:p-10 text-center">
-        {/* Logo */}
-        <div className="mx-auto mb-lg w-20 h-20 rounded-[1.25rem] bg-primary-container flex items-center justify-center shadow-lg shadow-primary-container/40">
-          <Icon name="eco" filled className="text-primary text-4xl" />
-        </div>
+    <div className="min-h-full bg-primary text-on-primary flex flex-col">
+      <header className="px-6 py-5">
+        <span className="text-headline-md font-headline-md font-bold">HabiTracker</span>
+      </header>
 
-        <h1 className="font-headline-xl text-headline-xl text-on-surface mb-md">HabiTracker</h1>
-        <p className="font-body-lg text-body-lg text-on-surface-variant mb-xl leading-7">
-          Begin your mindful journey
-          <br />
-          toward a balanced daily routine.
-        </p>
+      <main className="flex-1 flex flex-col justify-center items-center text-center px-6 pb-8">
+        <div className="w-full max-w-md">
+          {/* Playful habit-card cluster */}
+          <div className="flex justify-center gap-3 mb-xl" aria-hidden="true">
+            {[
+              { c: '#FACC48', i: 'book' },
+              { c: '#A3E048', i: 'self_improvement' },
+              { c: '#F472B6', i: 'water_drop' },
+              { c: '#93C5FD', i: 'directions_run' },
+            ].map((t, idx) => (
+              <div
+                key={t.i}
+                className="w-16 h-20 rounded-2xl flex items-end p-2 shadow-lg"
+                style={{
+                  backgroundColor: t.c,
+                  transform: `rotate(${(idx - 1.5) * 6}deg) translateY(${idx % 2 ? 8 : 0}px)`,
+                }}
+              >
+                <Icon name={t.i} filled className="text-2xl" style={{ color: '#111827' }} />
+              </div>
+            ))}
+          </div>
 
-        <button
-          onClick={handleSignIn}
-          disabled={busy}
-          className="w-full flex items-center justify-center gap-sm bg-surface-container-lowest border border-surface-container-highest text-on-surface font-label-md text-label-md rounded-xl py-4 hover:bg-surface-container-low transition-colors disabled:opacity-60"
-        >
-          <GoogleIcon />
-          {busy ? 'Signing in…' : 'Continue with Google'}
-        </button>
-
-        {error && (
-          <p className="mt-md text-error font-label-md text-label-md bg-error-container rounded-xl p-md">
-            {error}
+          <h1 className="font-headline-xl text-headline-xl leading-tight mb-md">
+            Build healthy habits with us
+          </h1>
+          <p className="font-body-lg text-body-lg text-on-primary/80 mb-xl">
+            Track your day, build streaks, and stay motivated — one habit at a time.
           </p>
-        )}
 
-        <p className="mt-xl font-label-sm text-label-sm text-on-surface-variant">
+          <button
+            onClick={handleSignIn}
+            disabled={busy}
+            className="w-full flex items-center justify-center gap-sm bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded-2xl py-4 shadow-xl hover:bg-surface-container-low transition-colors disabled:opacity-70"
+          >
+            <GoogleIcon />
+            {busy ? 'Signing in…' : 'Continue with Google'}
+          </button>
+          <p className="mt-md font-label-md text-label-md text-on-primary/80">
+            Sign in with Google to start your journey
+          </p>
+
+          {error && (
+            <p className="mt-lg font-label-md text-label-md bg-on-primary/10 rounded-xl p-md text-on-primary">
+              {error}
+            </p>
+          )}
+        </div>
+      </main>
+
+      <footer className="px-6 pb-8 text-center">
+        <p className="font-label-sm text-label-sm text-on-primary/70">
           By continuing, you agree to our Terms of Service &amp; Privacy Policy.
         </p>
-      </div>
+      </footer>
     </div>
   )
 }
