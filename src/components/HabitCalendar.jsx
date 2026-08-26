@@ -16,10 +16,11 @@ export default function HabitCalendar({ tracker, entriesByDay }) {
 
   function classify(k, dayIndex) {
     const d = fromDayKey(k)
-    const label = `Day ${dayIndex + 1}: ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
-    if (k > today) return { state: 'upcoming', label }
+    const date = `Day ${dayIndex + 1}: ${MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
+    if (k > today) return { state: 'upcoming', label: `${date} — upcoming` }
     const c = entriesByDay[k] || {}
     const done = habits.filter((h) => c[h.id]).length
+    const label = `${date} — ${done}/${n} completed`
     if (n > 0 && done === n) return { state: 'complete', label }
     if (done > 0) return { state: 'partial', label }
     return { state: 'none', label }
