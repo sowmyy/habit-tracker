@@ -33,29 +33,64 @@ function waitForGis() {
   })
 }
 
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
+const AUTHED_KEY = 'habitracker-authed'
+
+// Per-request handlers, wired once into the token client.
+let onToken = null
+let onTokenError = null
+
 export async function initAuth() {
   await waitForGis()
   tokenClient = window.google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES,
-    callback: () => {}, // set per-request below
+    callback: (resp) => onToken && onToken(resp),
+    error_callback: (err) => onTokenError && onTokenError(err),
   })
 }
 
-const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file'
+// True if this browser has completed a Google sign-in before (so we can try to
+// restore the session silently on load without showing any prompt).
+export function wasAuthed() {
+  try {
+    return localStorage.getItem(AUTHED_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+function markAuthed() {
+  try {
+    localStorage.setItem(AUTHED_KEY, '1')
+  } catch {}
+}
 
-// Request an access token. prompt '' = silent (no UI if already consented);
-// 'consent' / 'select_account' show UI.
+// Request an access token. prompt '' = silent (uses a hidden iframe when the
+// user already has a Google session + granted consent); 'consent' shows UI.
 async function requestToken(prompt) {
   if (!tokenClient) await initAuth() // recover if init hasn't run/failed yet
   return new Promise((resolve, reject) => {
     if (!tokenClient) return reject(new Error('Auth not initialized'))
-    tokenClient.callback = (resp) => {
+    let done = false
+    const timer = setTimeout(() => {
+      if (done) return
+      done = true
+      reject(new Error('token request timed out'))
+    }, 8000)
+    onToken = (resp) => {
+      if (done) return
+      done = true
+      clearTimeout(timer)
       if (resp.error) return reject(resp)
       accessToken = resp.access_token
-      // refresh a minute before actual expiry
       tokenExpiry = Date.now() + (resp.expires_in - 60) * 1000
       resolve(resp)
+    }
+    onTokenError = (err) => {
+      if (done) return
+      done = true
+      clearTimeout(timer)
+      reject(err || new Error('token request failed'))
     }
     tokenClient.requestAccessToken({ prompt })
   })
@@ -73,14 +108,18 @@ export async function signIn() {
         '("see, edit, create, and delete only the specific Drive files you use with this app") when signing in.'
     )
   }
-  return fetchUserInfo()
+  const profile = await fetchUserInfo()
+  markAuthed()
+  return profile
 }
 
-// Attempt to restore a session silently on page load.
+// Attempt to restore a session silently on page load (no UI).
 export async function trySilentSignIn() {
   try {
     await requestToken('')
-    return await fetchUserInfo()
+    const profile = await fetchUserInfo()
+    markAuthed()
+    return profile
   } catch {
     return null
   }
@@ -92,6 +131,9 @@ export function signOut() {
   }
   accessToken = null
   tokenExpiry = 0
+  try {
+    localStorage.removeItem(AUTHED_KEY)
+  } catch {}
 }
 
 async function getAccessToken() {

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react'
-import { initAuth, signIn, signOut } from '../lib/googleApi'
+import { initAuth, signIn, signOut, trySilentSignIn, wasAuthed } from '../lib/googleApi'
 
 const AuthContext = createContext(null)
 
@@ -7,14 +7,18 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Initialize GIS on load. We do NOT auto-request a token here: the OAuth
-  // token popup must be opened from a user gesture, so sign-in happens when
-  // the user clicks the button.
+  // Initialize GIS on load. If this browser has signed in before, restore the
+  // session silently (hidden iframe, no prompt). New users see the landing page
+  // and sign in with a click (the OAuth popup needs that user gesture).
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
         await initAuth()
+        if (wasAuthed()) {
+          const restored = await trySilentSignIn()
+          if (!cancelled && restored) setUser(restored)
+        }
       } catch (e) {
         console.error('auth init failed', e)
       } finally {
