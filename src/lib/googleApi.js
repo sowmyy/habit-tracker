@@ -67,20 +67,27 @@ function markAuthed() {
 
 // Request an access token. prompt '' = silent (uses a hidden iframe when the
 // user already has a Google session + granted consent); 'consent' shows UI.
-async function requestToken(prompt) {
+// timeoutMs guards only the *silent* path (a hung hidden-iframe request).
+// Interactive sign-in passes 0 — the user needs unbounded time to click
+// through the account chooser and consent screen.
+async function requestToken(prompt, timeoutMs = 0) {
   if (!tokenClient) await initAuth() // recover if init hasn't run/failed yet
   return new Promise((resolve, reject) => {
     if (!tokenClient) return reject(new Error('Auth not initialized'))
     let done = false
-    const timer = setTimeout(() => {
-      if (done) return
-      done = true
-      reject(new Error('token request timed out'))
-    }, 8000)
+    const timer =
+      timeoutMs > 0
+        ? setTimeout(() => {
+            if (done) return
+            done = true
+            reject(new Error('token request timed out'))
+          }, timeoutMs)
+        : null
+    const clear = () => timer && clearTimeout(timer)
     onToken = (resp) => {
       if (done) return
       done = true
-      clearTimeout(timer)
+      clear()
       if (resp.error) return reject(resp)
       accessToken = resp.access_token
       tokenExpiry = Date.now() + (resp.expires_in - 60) * 1000
@@ -89,7 +96,7 @@ async function requestToken(prompt) {
     onTokenError = (err) => {
       if (done) return
       done = true
-      clearTimeout(timer)
+      clear()
       reject(err || new Error('token request failed'))
     }
     tokenClient.requestAccessToken({ prompt })
@@ -116,7 +123,7 @@ export async function signIn() {
 // Attempt to restore a session silently on page load (no UI).
 export async function trySilentSignIn() {
   try {
-    await requestToken('')
+    await requestToken('', 8000)
     const profile = await fetchUserInfo()
     markAuthed()
     return profile
@@ -138,7 +145,7 @@ export function signOut() {
 
 async function getAccessToken() {
   if (accessToken && Date.now() < tokenExpiry) return accessToken
-  await requestToken('') // silent refresh
+  await requestToken('', 8000) // silent refresh
   return accessToken
 }
 
