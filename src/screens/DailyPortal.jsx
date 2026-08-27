@@ -182,7 +182,7 @@ export default function DailyPortal({ tracker, entriesByDay, onUpdateDay }) {
                   <Icon name={m.icon} filled className="text-2xl" />
                 </span>
                 {done ? (
-                  <span className="w-7 h-7 rounded-full bg-on-surface text-surface-container-lowest flex items-center justify-center">
+                  <span className="pop-in w-7 h-7 rounded-full bg-on-surface text-surface-container-lowest flex items-center justify-center">
                     <Icon name="check" filled className="text-base" />
                   </span>
                 ) : (
@@ -204,7 +204,7 @@ export default function DailyPortal({ tracker, entriesByDay, onUpdateDay }) {
       </div>
 
       {doneCount === habits.length && habits.length > 0 && editable && (
-        <div className="mt-lg bg-primary-container/40 rounded-2xl p-md text-center font-label-md text-label-md text-on-primary-container">
+        <div className="pop-in mt-lg bg-primary-container/40 rounded-2xl p-md text-center font-label-md text-label-md text-on-primary-container">
           🎉 All done for {dayKey === today ? 'today' : 'this day'}! Great work.
         </div>
       )}

@@ -28,15 +28,22 @@ export default function LoginScreen() {
   }
 
   return (
-    <div className="min-h-full bg-primary text-on-primary flex flex-col">
-      <header className="px-6 py-5">
+    <div className="relative min-h-full bg-primary text-on-primary flex flex-col overflow-hidden">
+      {/* Animated background blobs */}
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-24 -left-24 w-80 h-80 bg-inverse-primary/40 blur-3xl animate-blob" />
+        <div className="absolute top-1/3 -right-28 w-96 h-96 bg-[#F472B6]/25 blur-3xl animate-blob" style={{ animationDelay: '3s' }} />
+        <div className="absolute -bottom-32 left-1/4 w-96 h-96 bg-[#93C5FD]/30 blur-3xl animate-blob" style={{ animationDelay: '6s' }} />
+      </div>
+
+      <header className="relative px-6 py-5 pt-safe">
         <span className="text-headline-md font-headline-md font-bold">HabiTracker</span>
       </header>
 
-      <main className="flex-1 flex flex-col justify-center items-center text-center px-6 pb-8">
+      <main className="relative flex-1 flex flex-col justify-center items-center text-center px-6 pb-8">
         <div className="w-full max-w-md">
           {/* Playful habit-card cluster */}
-          <div className="flex justify-center gap-3 mb-xl" aria-hidden="true">
+          <div className="flex justify-center gap-3 mb-xl animate-float" aria-hidden="true">
             {[
               { c: '#FACC48', i: 'book' },
               { c: '#A3E048', i: 'self_improvement' },
@@ -66,7 +73,7 @@ export default function LoginScreen() {
           <button
             onClick={handleSignIn}
             disabled={busy}
-            className="w-full flex items-center justify-center gap-sm bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded-2xl py-4 shadow-xl hover:bg-surface-container-low transition-colors disabled:opacity-70"
+            className="tap w-full flex items-center justify-center gap-sm bg-surface-container-lowest text-on-surface font-label-md text-label-md rounded-2xl py-4 shadow-xl hover:bg-surface-container-low transition-colors disabled:opacity-70"
           >
             <GoogleIcon />
             {busy ? 'Signing in…' : 'Continue with Google'}

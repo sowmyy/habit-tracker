@@ -43,7 +43,7 @@ export default function AppShell({ tracker, entriesByDay, onUpdateDay, onAddHabi
   return (
     <div className="min-h-full flex bg-background dark:bg-dark-bg">
       {/* Mobile top app bar */}
-      <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-surface dark:bg-dark-surface flex justify-between items-center px-margin-mobile h-14 card-shadow">
+      <header className="md:hidden fixed top-0 left-0 right-0 z-50 bg-surface/90 dark:bg-dark-surface/90 backdrop-blur-md flex justify-between items-center px-margin-mobile h-safe-top card-shadow">
         <span className="font-headline-md text-headline-md font-bold text-primary">HabiTracker</span>
         <Avatar avatar={avatar} initial={initial} onClick={() => setView('settings')} />
       </header>
@@ -109,32 +109,35 @@ export default function AppShell({ tracker, entriesByDay, onUpdateDay, onAddHabi
 
       {/* Main content */}
       <main
-        className={`flex-grow pt-20 md:pt-lg px-margin-mobile md:px-margin-desktop pb-28 md:pb-lg max-w-7xl mx-auto w-full transition-[margin] duration-200 ${
+        className={`flex-grow pt-[calc(4rem+env(safe-area-inset-top))] md:pt-lg px-margin-mobile md:px-margin-desktop pb-[calc(6rem+env(safe-area-inset-bottom))] md:pb-lg max-w-7xl mx-auto w-full transition-[margin] duration-200 ${
           collapsed ? 'md:ml-20' : 'md:ml-64'
         }`}
       >
-        {view === 'today' && (
-          <DailyPortal tracker={tracker} entriesByDay={entriesByDay} onUpdateDay={onUpdateDay} />
-        )}
-        {view === 'add' && (
-          <AddHabit tracker={tracker} onAddHabit={onAddHabit} onGoToTracker={() => setView('today')} />
-        )}
-        {view === 'insights' && <Dashboard tracker={tracker} entriesByDay={entriesByDay} />}
-        {view === 'settings' && <Settings onResetGoal={onNewGoal} onLogout={logout} />}
+        <div key={view} className="view-enter">
+          {view === 'today' && (
+            <DailyPortal tracker={tracker} entriesByDay={entriesByDay} onUpdateDay={onUpdateDay} />
+          )}
+          {view === 'add' && (
+            <AddHabit tracker={tracker} onAddHabit={onAddHabit} onGoToTracker={() => setView('today')} />
+          )}
+          {view === 'insights' && <Dashboard tracker={tracker} entriesByDay={entriesByDay} />}
+          {view === 'settings' && <Settings onResetGoal={onNewGoal} onLogout={logout} />}
+        </div>
       </main>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 h-16 bg-surface dark:bg-dark-surface rounded-t-2xl shadow-[0_-4px_20px_rgba(30,41,59,0.08)]">
+      <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-stretch px-3 pt-2 pb-safe bg-surface/90 dark:bg-dark-surface/90 backdrop-blur-md rounded-t-3xl shadow-[0_-4px_24px_rgba(30,41,59,0.1)]">
         {MOBILE_NAV.map((item) => {
           const active = view === item.key
           return (
             <button
               key={item.key}
               onClick={() => setView(item.key)}
-              className={`flex flex-col items-center justify-center px-4 py-1 rounded-2xl transition-colors ${
+              aria-label={item.label}
+              className={`tap flex flex-col items-center justify-center gap-0.5 px-4 py-2 rounded-2xl transition-all duration-200 ${
                 active
-                  ? 'bg-primary text-on-primary'
-                  : 'text-on-surface dark:text-dark-on-surface'
+                  ? 'bg-primary text-on-primary -translate-y-1 shadow-lg shadow-primary/30'
+                  : 'text-on-surface-variant'
               }`}
             >
               <Icon name={item.icon} filled className="text-2xl" />
