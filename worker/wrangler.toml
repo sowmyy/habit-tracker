@@ -1,0 +1,19 @@
+name = "habitracker-push"
+main = "src/index.js"
+compatibility_date = "2024-09-01"
+
+# Runs every 15 minutes; the code fires each user's nudge at their local time.
+[triggers]
+crons = ["*/15 * * * *"]
+
+# Public VAPID key + contact. The PRIVATE key is set as a secret, not here:
+#   npx wrangler secret put VAPID_PRIVATE_KEY
+[vars]
+VAPID_PUBLIC_KEY = "BGvQ67JhVVIln29VSJUglqwdrXPZN3dNpQ53bCJ4RNwh2-b40hcAnh4NSO3rl7Ew8x22tt0h3EXmX7siBbLWLTE"
+VAPID_SUBJECT = "mailto:sowmyanarayanan.ss@zohocorp.com"
+
+# Storage for subscriptions. Create it once, then paste the id below:
+#   npx wrangler kv namespace create SUBSCRIPTIONS
+[[kv_namespaces]]
+binding = "SUBSCRIPTIONS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
