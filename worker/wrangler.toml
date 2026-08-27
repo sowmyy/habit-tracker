@@ -16,4 +16,4 @@ VAPID_SUBJECT = "mailto:sowmyanarayanan.ss@zohocorp.com"
 #   npx wrangler kv namespace create SUBSCRIPTIONS
 [[kv_namespaces]]
 binding = "SUBSCRIPTIONS"
-id = "REPLACE_WITH_KV_NAMESPACE_ID"
+id = "f5bd09b3fef4421cb382064ae82ee32a"
