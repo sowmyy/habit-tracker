@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useAuth } from './context/AuthContext'
 import { loadAll, addHabit } from './lib/store'
+import { pushStats } from './lib/push'
+import { computeReminderStats } from './lib/reminderStats'
 import LoginScreen from './screens/LoginScreen'
 import Onboarding from './screens/Onboarding'
 import AppShell from './components/AppShell'
@@ -48,6 +50,11 @@ export default function App() {
       cancelled = true
     }
   }, [user])
+
+  // Keep the reminder server's stats fresh whenever data changes.
+  useEffect(() => {
+    if (data?.tracker) pushStats(computeReminderStats(data.tracker, data.entriesByDay))
+  }, [data])
 
   const updateDay = useCallback((dayKey, completed) => {
     setData((d) => ({

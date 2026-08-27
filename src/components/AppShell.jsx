@@ -5,6 +5,8 @@ import DailyPortal from '../screens/DailyPortal'
 import Dashboard from '../screens/Dashboard'
 import Settings from '../screens/Settings'
 import AddHabit from '../screens/AddHabit'
+import ReminderPrompt from './ReminderPrompt'
+import { computeReminderStats } from '../lib/reminderStats'
 
 const NAV = [
   { key: 'today', label: 'Daily Tracker', icon: 'task_alt' },
@@ -121,9 +123,18 @@ export default function AppShell({ tracker, entriesByDay, onUpdateDay, onAddHabi
             <AddHabit tracker={tracker} onAddHabit={onAddHabit} onGoToTracker={() => setView('today')} />
           )}
           {view === 'insights' && <Dashboard tracker={tracker} entriesByDay={entriesByDay} />}
-          {view === 'settings' && <Settings onResetGoal={onNewGoal} onLogout={logout} />}
+          {view === 'settings' && (
+            <Settings
+              onResetGoal={onNewGoal}
+              onLogout={logout}
+              stats={computeReminderStats(tracker, entriesByDay)}
+            />
+          )}
         </div>
       </main>
+
+      {/* One-time reminder opt-in after onboarding */}
+      <ReminderPrompt stats={computeReminderStats(tracker, entriesByDay)} onOpenSettings={() => setView('settings')} />
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-stretch px-3 pt-2 pb-safe bg-surface/90 dark:bg-dark-surface/90 backdrop-blur-md rounded-t-3xl shadow-[0_-4px_24px_rgba(30,41,59,0.1)]">

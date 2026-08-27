@@ -1,9 +1,22 @@
 import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { isDark, setDark } from '../lib/theme'
+import {
+  pushSupported,
+  pushConfigured,
+  getReminderPrefs,
+  enableReminders,
+  disableReminders,
+  updateReminderTime,
+  sendTestNotification,
+} from '../lib/push'
 import Icon from '../components/Icon'
 
-export default function Settings({ onResetGoal, onLogout }) {
+function fmtTime(h, m) {
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+export default function Settings({ onResetGoal, onLogout, stats }) {
   const { user } = useAuth()
   const [dark, setDarkState] = useState(isDark())
   const [showReset, setShowReset] = useState(false)
@@ -92,6 +105,14 @@ export default function Settings({ onResetGoal, onLogout }) {
               English
             </span>
           </div>
+        </div>
+
+        {/* Reminders */}
+        <div className="rounded-2xl p-lg card-shadow bg-surface-container-lowest dark:bg-dark-surface-container">
+          <h2 className="font-headline-md text-headline-md text-on-surface dark:text-dark-on-surface pb-md mb-lg border-b border-surface-container-high">
+            Reminders
+          </h2>
+          <ReminderControls stats={stats} />
         </div>
 
         {/* Account */}
@@ -183,6 +204,129 @@ function ResetModal({ onCancel, onConfirm }) {
           </button>
         </div>
       </div>
+    </div>
+  )
+}
+
+function ReminderControls({ stats }) {
+  const [prefs, setPrefs] = useState(getReminderPrefs())
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState('')
+
+  if (!pushSupported()) {
+    return (
+      <p className="font-body-md text-body-md text-on-surface-variant">
+        Notifications aren't supported on this browser. On iPhone, add the app to your Home Screen
+        first (Share → Add to Home Screen), then enable reminders there.
+      </p>
+    )
+  }
+  if (!pushConfigured()) {
+    return (
+      <p className="font-body-md text-body-md text-on-surface-variant">
+        Daily reminders will be available once the notification server is connected.
+      </p>
+    )
+  }
+
+  async function toggle() {
+    setBusy(true)
+    setMsg('')
+    try {
+      if (prefs.enabled) {
+        setPrefs(await disableReminders())
+      } else {
+        setPrefs(await enableReminders({ hour: prefs.hour, minute: prefs.minute }, stats))
+        setMsg("You're all set — we'll nudge you daily.")
+      }
+    } catch (e) {
+      setMsg(
+        String(e?.message) === 'PERMISSION_DENIED'
+          ? 'Notification permission was blocked. Enable it in your browser settings.'
+          : 'Something went wrong. Please try again.'
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function onTimeChange(e) {
+    const [h, m] = e.target.value.split(':').map(Number)
+    setBusy(true)
+    try {
+      setPrefs(await updateReminderTime({ hour: h, minute: m }))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  async function test() {
+    setMsg('')
+    try {
+      await sendTestNotification()
+      setMsg('Test notification sent!')
+    } catch {
+      setMsg('Could not send a test. Make sure reminders are on.')
+    }
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between py-md">
+        <div className="flex items-center gap-md">
+          <Icon name="notifications_active" filled className="text-tertiary text-2xl" />
+          <div>
+            <div className="font-body-md text-body-md text-on-surface dark:text-dark-on-surface">
+              Daily reminder
+            </div>
+            <div className="font-label-sm text-label-sm text-on-surface-variant">
+              A nudge to keep your streak alive
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={toggle}
+          disabled={busy}
+          role="switch"
+          aria-checked={prefs.enabled}
+          className={`w-14 h-8 rounded-full p-1 transition-colors flex disabled:opacity-60 ${
+            prefs.enabled ? 'bg-primary justify-end' : 'bg-surface-container-highest justify-start'
+          }`}
+        >
+          <span className="w-6 h-6 rounded-full bg-white shadow flex items-center justify-center">
+            {prefs.enabled && <Icon name="check" filled className="text-primary text-sm" />}
+          </span>
+        </button>
+      </div>
+
+      {prefs.enabled && (
+        <div className="flex items-center justify-between py-md border-t border-surface-container-high">
+          <div className="flex items-center gap-md">
+            <Icon name="schedule" className="text-on-surface-variant text-2xl" />
+            <span className="font-body-md text-body-md text-on-surface dark:text-dark-on-surface">
+              Reminder time
+            </span>
+          </div>
+          <input
+            type="time"
+            value={fmtTime(prefs.hour, prefs.minute)}
+            onChange={onTimeChange}
+            disabled={busy}
+            className="rounded-lg bg-surface-container-low dark:bg-dark-surface-high border border-surface-container-highest px-3 py-2 font-label-md text-label-md text-on-surface dark:text-dark-on-surface"
+          />
+        </div>
+      )}
+
+      {prefs.enabled && (
+        <button
+          onClick={test}
+          className="mt-sm font-label-md text-label-md text-primary hover:underline"
+        >
+          Send a test notification
+        </button>
+      )}
+
+      {msg && <p className="mt-md font-label-sm text-label-sm text-on-surface-variant">{msg}</p>}
     </div>
   )
 }
